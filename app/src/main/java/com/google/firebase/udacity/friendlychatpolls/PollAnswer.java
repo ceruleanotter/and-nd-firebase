@@ -10,6 +10,9 @@ public class PollAnswer {
     private String text;
     private HashMap<String, Boolean> votes;
 
+    public PollAnswer() {
+    }
+
     public PollAnswer(String text) {
         this.text = text;
         this.votes = new HashMap<String, Boolean>();

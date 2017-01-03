@@ -153,7 +153,15 @@ public class MainActivity extends AppCompatActivity {
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FriendlyMessage friendlyMessage = new FriendlyMessage(mMessageEditText.getText().toString(), null, mUsername);
+
+                String message = mMessageEditText.getText().toString();
+                FriendlyMessage friendlyMessage = null;
+                if (MessageUtilities.isPoll(message)) {
+                    friendlyMessage = MessageUtilities.parsePoll(message, mUsername);
+                } else {
+                    friendlyMessage = new FriendlyMessage(mMessageEditText.getText().toString(), null, mUsername);
+                }
+
                 mMessagesDatabaseReference.push().setValue(friendlyMessage);
 
                 // Clear input box

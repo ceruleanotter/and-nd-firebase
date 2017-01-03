@@ -15,6 +15,8 @@
  */
 package com.google.firebase.udacity.friendlychatpolls;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class FriendlyMessage {
@@ -22,7 +24,7 @@ public class FriendlyMessage {
     private String text;
     private String name;
     private String photoUrl;
-    private HashMap<Integer, PollAnswer> poll;
+    private ArrayList<PollAnswer> poll;
 
     public FriendlyMessage() {
     }
@@ -34,15 +36,11 @@ public class FriendlyMessage {
     }
 
 
-    public FriendlyMessage(String question, String name, String[] answers) {
+    public FriendlyMessage(String question, String name, ArrayList<PollAnswer> poll) {
         this.text = question;
         this.name = name;
         this.photoUrl = null;
-        this.poll = new HashMap<Integer, PollAnswer>();
-
-        for (int i = 0; i < answers.length ; i++) {
-            poll.put(i, new PollAnswer(answers[i]));
-        }
+        this.poll = poll;
 
     }
 
@@ -70,7 +68,7 @@ public class FriendlyMessage {
         this.photoUrl = photoUrl;
     }
 
-    public HashMap<Integer, PollAnswer> getPoll() {
+    public ArrayList<PollAnswer> getPoll() {
         return poll;
     }
 }

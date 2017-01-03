@@ -33,7 +33,7 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
         TextView authorTextView = (TextView) convertView.findViewById(R.id.nameTextView);
 
 
-        RelativeLayout pollRelativeLayout = (RelativeLayout) convertView.findViewById(R.id.pollRelativeLayout);
+
         Button button1 = (Button) convertView.findViewById(R.id.button1);
         Button button2 = (Button) convertView.findViewById(R.id.button2);
         Button button3 = (Button) convertView.findViewById(R.id.button3);
@@ -49,7 +49,6 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
         boolean isPoll = chatMessage.getPoll() != null;
         if (isPhoto) {
             messageTextView.setVisibility(View.GONE);
-            pollRelativeLayout.setVisibility(View.GONE);
             photoImageView.setVisibility(View.VISIBLE);
             Glide.with(photoImageView.getContext())
                     .load(chatMessage.getPhotoUrl())
@@ -62,16 +61,17 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
 
             // If it's a poll
             if(!isPoll) {
-                pollRelativeLayout.setVisibility(View.GONE);
             } else {
-                pollRelativeLayout.setVisibility(View.VISIBLE);
-
+                int answerNumber = 1;
                 // set and display the buttons as necessary
+                for (PollAnswer answer : chatMessage.getPoll()) {
 
-                for (Map.Entry<Integer, PollAnswer> entry : chatMessage.getPoll().entrySet()) {
-                    String answerNumber = String.valueOf(entry.getKey());
-                    PollAnswer answer = entry.getValue();
-                    String buttonIdString = "button" + answerNumber;
+                    String answerNumberString = String.valueOf(answerNumber);
+
+                    message += "\n" + answerNumberString + ") " + answer.getText();
+
+
+                    String buttonIdString = "button" + String.valueOf(answerNumber);
                     try {
                         Class res = R.id.class;
                         Field field = res.getField(buttonIdString);
@@ -79,7 +79,12 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
                         Button b = (Button) convertView.findViewById(buttonId);
 
                         //TODO change this to a formatted string
-                        String buttonText = "Choice " + answerNumber + " (" + answer.getVotes().size() + ")";
+
+                        int voteCount = 0;
+                        if (answer.getVotes() != null ) voteCount = answer.getVotes().size();
+
+
+                        String buttonText = "Vote " + answerNumberString + " (" + voteCount + ")";
 
                         b.setText(buttonText);
                         b.setVisibility(View.VISIBLE);
@@ -88,16 +93,11 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
                     catch (Exception e) {
                         Log.e("MyTag", "Failure to get drawable id.", e);
                     }
-
+                    answerNumber++;
                 }
             }
 
             messageTextView.setText(message);
-
-
-
-
-
 
         }
         authorTextView.setText(chatMessage.getName());
