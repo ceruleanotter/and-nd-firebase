@@ -2,6 +2,7 @@ package com.google.firebase.udacity.friendlychatpolls;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,55 +13,48 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.firebase.database.Query;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
-    public MessageAdapter(Context context, int resource, List<FriendlyMessage> objects) {
-        super(context, resource, objects);
+import static java.security.AccessController.getContext;
+
+public class MessageAdapter extends FirebaseRecyclerAdapter<FriendlyMessage, MessageAdapter.FriendlyMessageHolder> {
+
+
+    public MessageAdapter(Class<FriendlyMessage> modelClass, int modelLayout, Class<FriendlyMessageHolder> viewHolderClass, Query ref) {
+        super(modelClass, modelLayout, viewHolderClass, ref);
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = ((Activity) getContext()).getLayoutInflater().inflate(R.layout.item_message, parent, false);
-        }
+    protected void populateViewHolder(FriendlyMessageHolder viewHolder, FriendlyMessage model, int position) {
 
-        ImageView photoImageView = (ImageView) convertView.findViewById(R.id.photoImageView);
-        TextView messageTextView = (TextView) convertView.findViewById(R.id.messageTextView);
-        TextView authorTextView = (TextView) convertView.findViewById(R.id.nameTextView);
-
-
-
-        Button button1 = (Button) convertView.findViewById(R.id.button1);
-        Button button2 = (Button) convertView.findViewById(R.id.button2);
-        Button button3 = (Button) convertView.findViewById(R.id.button3);
-        Button button4 = (Button) convertView.findViewById(R.id.button4);
-        button1.setVisibility(View.GONE);
-        button2.setVisibility(View.GONE);
-        button3.setVisibility(View.GONE);
-        button4.setVisibility(View.GONE);
+        viewHolder.button1.setVisibility(View.GONE);
+        viewHolder.button2.setVisibility(View.GONE);
+        viewHolder.button3.setVisibility(View.GONE);
+        viewHolder.button4.setVisibility(View.GONE);
 
         FriendlyMessage chatMessage = getItem(position);
 
         boolean isPhoto = chatMessage.getPhotoUrl() != null;
         boolean isPoll = chatMessage.getPoll() != null;
         if (isPhoto) {
-            messageTextView.setVisibility(View.GONE);
-            photoImageView.setVisibility(View.VISIBLE);
-            Glide.with(photoImageView.getContext())
+            viewHolder.messageTextView.setVisibility(View.GONE);
+            viewHolder.photoImageView.setVisibility(View.VISIBLE);
+            Glide.with(viewHolder.photoImageView.getContext())
                     .load(chatMessage.getPhotoUrl())
-                    .into(photoImageView);
+                    .into(viewHolder.photoImageView);
         } else {
-            messageTextView.setVisibility(View.VISIBLE);
-            photoImageView.setVisibility(View.GONE);
+            viewHolder.messageTextView.setVisibility(View.VISIBLE);
+            viewHolder.photoImageView.setVisibility(View.GONE);
 
             String message = chatMessage.getText();
 
             // If it's a poll
-            if(!isPoll) {
+            if (!isPoll) {
             } else {
                 int answerNumber = 1;
                 // set and display the buttons as necessary
@@ -70,38 +64,67 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
 
                     message += "\n" + answerNumberString + ") " + answer.getText();
 
-
                     String buttonIdString = "button" + String.valueOf(answerNumber);
-                    try {
-                        Class res = R.id.class;
-                        Field field = res.getField(buttonIdString);
-                        int buttonId = field.getInt(null);
-                        Button b = (Button) convertView.findViewById(buttonId);
-
-                        //TODO change this to a formatted string
-
-                        int voteCount = 0;
-                        if (answer.getVotes() != null ) voteCount = answer.getVotes().size();
 
 
-                        String buttonText = "Vote " + answerNumberString + " (" + voteCount + ")";
-
-                        b.setText(buttonText);
-                        b.setVisibility(View.VISIBLE);
-
+                    Button b = null;
+                    switch (answerNumber) {
+                        case 1:
+                            b = viewHolder.button1;
+                            break;
+                        case 2:
+                            b = viewHolder.button2;
+                            break;
+                        case 3:
+                            b = viewHolder.button3;
+                            break;
+                        case 4:
+                            b = viewHolder.button4;
+                            break;
                     }
-                    catch (Exception e) {
-                        Log.e("MyTag", "Failure to get drawable id.", e);
-                    }
+
+                    int voteCount = 0;
+                    if (answer.getVotes() != null) voteCount = answer.getVotes().size();
+
+                    String buttonText = "Vote " + answerNumberString + " (" + voteCount + ")";
+
+                    b.setText(buttonText);
+                    b.setVisibility(View.VISIBLE);
+
                     answerNumber++;
                 }
             }
 
-            messageTextView.setText(message);
+            viewHolder.messageTextView.setText(message);
 
         }
-        authorTextView.setText(chatMessage.getName());
+        viewHolder.authorTextView.setText(chatMessage.getName());
+    }
 
-        return convertView;
+    public static class FriendlyMessageHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        ImageView photoImageView;
+        TextView messageTextView;
+        TextView authorTextView;
+        Button button1;
+        Button button2;
+        Button button3;
+        Button button4;
+
+        public FriendlyMessageHolder(View itemView) {
+            super(itemView);
+            photoImageView = (ImageView) itemView.findViewById(R.id.photoImageView);
+            messageTextView = (TextView) itemView.findViewById(R.id.messageTextView);
+            authorTextView = (TextView) itemView.findViewById(R.id.nameTextView);
+
+            button1 = (Button) itemView.findViewById(R.id.button1);
+            button2 = (Button) itemView.findViewById(R.id.button2);
+            button3 = (Button) itemView.findViewById(R.id.button3);
+            button4 = (Button) itemView.findViewById(R.id.button4);
+        }
+
+        @Override
+        public void onClick(View v) {
+
+        }
     }
 }
