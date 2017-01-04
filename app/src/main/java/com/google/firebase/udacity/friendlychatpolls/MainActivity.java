@@ -334,12 +334,16 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
     @Override
     public void onClick(String voteNumber, String messageId) {
         // TODO make a poll a constant
-        DatabaseReference voteRef = mMessagesDatabaseReference.child(messageId).child("poll").child(voteNumber).child("votes");
+        final DatabaseReference voteRef = mMessagesDatabaseReference.child(messageId).child("poll").child(voteNumber).child("votes").child(mUser.getUid());
 
         voteRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                dataSnapshot.getValue();
+                if (dataSnapshot.getValue() == null) {
+                    voteRef.setValue(true);
+                } else {
+                    voteRef.setValue(null);
+                }
             }
 
             @Override

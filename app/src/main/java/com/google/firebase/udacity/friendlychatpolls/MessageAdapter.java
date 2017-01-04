@@ -135,16 +135,16 @@ public class MessageAdapter extends FirebaseRecyclerAdapter<FriendlyMessage, Mes
             if (mVoteClickHandler != null) {
                 switch (v.getId()) {
                     case R.id.button1:
-                        mVoteClickHandler.onClick("1", mKey);
+                        mVoteClickHandler.onClick("0", mKey);
                         break;
                     case R.id.button2:
-                        mVoteClickHandler.onClick("2", mKey);
+                        mVoteClickHandler.onClick("1", mKey);
                         break;
                     case R.id.button3:
-                        mVoteClickHandler.onClick("3", mKey);
+                        mVoteClickHandler.onClick("2", mKey);
                         break;
                     case R.id.button4:
-                        mVoteClickHandler.onClick("4", mKey);
+                        mVoteClickHandler.onClick("3", mKey);
                         break;
                 }
             }
