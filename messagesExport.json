@@ -1,0 +1,32 @@
+{
+  "-K_WqvIEVpRXM3z7JWDx" : {
+    "name" : "Lyla Fujiwara",
+    "text" : "hello world"
+  },
+  "-K_XLWKIFgXqz57Rxmgw" : {
+    "name" : "Lyla Fujiwaras",
+    "poll" : [ {
+      "text" : "Seafoodd"
+    }, {
+      "text" : "Italians",
+      "votes" : {
+        "Wd2noNqTmHPeeZmt7ble9RdWiBD3" : true
+      }
+    }, {
+      "text" : "Japanese",
+      "votes" : {
+        "Wd2noNqTmHPeeZmt7ble9RdWiBD3" : true
+      }
+    }, {
+      "text" : "Soylent",
+      "votes" : {
+        "Wd2noNqTmHPeeZmt7ble9RdWiBD3" : true
+      }
+    } ],
+    "text" : "what should we eat"
+  },
+  "-K_c5kePp9PQWvZ_hoKH" : {
+    "name" : "Lyla Fujiwara",
+    "photoUrl" : "https://firebasestorage.googleapis.com/v0/b/friendlychatwithpolls.appspot.com/o/chat_photos%2Fimage%3A15519?alt=media&token=cfd52391-bd97-4e12-950c-ae344b9c356e"
+  }
+}
