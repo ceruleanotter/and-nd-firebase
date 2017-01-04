@@ -71,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
 
     private RecyclerView mMessageRecyclerView;
     private MessageAdapter mMessageAdapter;
+    private LinearLayoutManager mLayoutManager;
+
     private ProgressBar mProgressBar;
     private ImageButton mPhotoPickerButton;
     private EditText mMessageEditText;
@@ -110,12 +112,8 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
 
         // Setup layout manager
         mMessageRecyclerView.setHasFixedSize(true);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        mMessageRecyclerView.setLayoutManager(layoutManager);
-
-        // Initialize message RecyclerView and its adapter
-        mMessageAdapter = new MessageAdapter(FriendlyMessage.class, R.layout.item_message, MessageAdapter.FriendlyMessageHolder.class, mMessagesDatabaseReference, this);
-        mMessageRecyclerView.setAdapter(mMessageAdapter);
+        mLayoutManager = new LinearLayoutManager(this);
+        mMessageRecyclerView.setLayoutManager(mLayoutManager);
 
         // Initialize progress bar
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
@@ -279,10 +277,31 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
 
     private void onSignedInInitialize(FirebaseUser user) {
         mUser = user;
+        attachRecyclerViewAdapter();
     }
 
     private void onSignedOutCleanup() {
         mUser = null;
+        if (mMessageAdapter != null) {
+            mMessageAdapter.cleanup();
+        }
+    }
+
+    private void attachRecyclerViewAdapter() {
+        // Initialize message RecyclerView and its adapter
+        mMessageAdapter = new MessageAdapter(FriendlyMessage.class, R.layout.item_message, MessageAdapter.FriendlyMessageHolder.class, mMessagesDatabaseReference, this);
+
+
+        // Scroll to bottom on new messages
+        mMessageAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                mLayoutManager.smoothScrollToPosition(mMessageRecyclerView, null, mMessageAdapter.getItemCount());
+            }
+        });
+
+
+        mMessageRecyclerView.setAdapter(mMessageAdapter);
     }
 
 
