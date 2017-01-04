@@ -46,6 +46,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.google.firebase.storage.FirebaseStorage;
@@ -57,7 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MessageAdapter.VoteOnClickHandler {
 
     private static final String TAG = "MainActivity";
 
@@ -115,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         mMessageRecyclerView.setLayoutManager(layoutManager);
 
         // Initialize message RecyclerView and its adapter
-        mMessageAdapter = new MessageAdapter(FriendlyMessage.class, R.layout.item_message, MessageAdapter.FriendlyMessageHolder.class, mMessagesDatabaseReference);
+        mMessageAdapter = new MessageAdapter(FriendlyMessage.class, R.layout.item_message, MessageAdapter.FriendlyMessageHolder.class, mMessagesDatabaseReference, this);
         mMessageRecyclerView.setAdapter(mMessageAdapter);
 
         // Initialize progress bar
@@ -329,5 +330,17 @@ public class MainActivity extends AppCompatActivity {
         Long friendly_msg_length = mFirebaseRemoteConfig.getLong(FRIENDLY_MSG_LENGTH_KEY);
         mMessageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(friendly_msg_length.intValue())});
         Log.d(TAG, FRIENDLY_MSG_LENGTH_KEY + " = " + friendly_msg_length);
+    }
+
+
+    @Override
+    public void onClick(String voteNumber, String messageId) {
+        // TODO make a poll a constant
+        DatabaseReference voteRef = mMessagesDatabaseReference.child(messageId).child("poll").child(voteNumber).child("votes");
+        Log.e("MainActivity", "voted " + voteRef.toString());
+
+
+
+
     }
 }

@@ -1,32 +1,29 @@
 package com.google.firebase.udacity.friendlychatpolls;
 
-import android.app.Activity;
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.database.Query;
 
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
-
-import static java.security.AccessController.getContext;
-
 public class MessageAdapter extends FirebaseRecyclerAdapter<FriendlyMessage, MessageAdapter.FriendlyMessageHolder> {
 
+    VoteOnClickHandler mVoteClickHandler;
 
-    public MessageAdapter(Class<FriendlyMessage> modelClass, int modelLayout, Class<FriendlyMessageHolder> viewHolderClass, Query ref) {
+    /** Interface for clicks**/
+    public interface VoteOnClickHandler {
+        void onClick(String voteNumber, String messageId);
+    }
+
+    public MessageAdapter(Class<FriendlyMessage> modelClass, int modelLayout,
+                          Class<FriendlyMessageHolder> viewHolderClass, Query ref,
+                          VoteOnClickHandler handler) {
         super(modelClass, modelLayout, viewHolderClass, ref);
+        mVoteClickHandler = handler;
     }
 
     @Override
@@ -47,59 +44,19 @@ public class MessageAdapter extends FirebaseRecyclerAdapter<FriendlyMessage, Mes
             Glide.with(viewHolder.photoImageView.getContext())
                     .load(chatMessage.getPhotoUrl())
                     .into(viewHolder.photoImageView);
+        } else if (isPoll) {
+            viewHolder.messageTextView.setVisibility(View.VISIBLE);
+            viewHolder.photoImageView.setVisibility(View.GONE);
+            viewHolder.bindPollMessage(chatMessage, mVoteClickHandler, getRef(position).getKey());
+
         } else {
             viewHolder.messageTextView.setVisibility(View.VISIBLE);
             viewHolder.photoImageView.setVisibility(View.GONE);
-
-            String message = chatMessage.getText();
-
-            // If it's a poll
-            if (!isPoll) {
-            } else {
-                int answerNumber = 1;
-                // set and display the buttons as necessary
-                for (PollAnswer answer : chatMessage.getPoll()) {
-
-                    String answerNumberString = String.valueOf(answerNumber);
-
-                    message += "\n" + answerNumberString + ") " + answer.getText();
-
-                    String buttonIdString = "button" + String.valueOf(answerNumber);
-
-
-                    Button b = null;
-                    switch (answerNumber) {
-                        case 1:
-                            b = viewHolder.button1;
-                            break;
-                        case 2:
-                            b = viewHolder.button2;
-                            break;
-                        case 3:
-                            b = viewHolder.button3;
-                            break;
-                        case 4:
-                            b = viewHolder.button4;
-                            break;
-                    }
-
-                    int voteCount = 0;
-                    if (answer.getVotes() != null) voteCount = answer.getVotes().size();
-
-                    String buttonText = "Vote " + answerNumberString + " (" + voteCount + ")";
-
-                    b.setText(buttonText);
-                    b.setVisibility(View.VISIBLE);
-
-                    answerNumber++;
-                }
-            }
-
-            viewHolder.messageTextView.setText(message);
-
+            viewHolder.messageTextView.setText(chatMessage.getText());
         }
         viewHolder.authorTextView.setText(chatMessage.getName());
     }
+
 
     public static class FriendlyMessageHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView photoImageView;
@@ -109,6 +66,9 @@ public class MessageAdapter extends FirebaseRecyclerAdapter<FriendlyMessage, Mes
         Button button2;
         Button button3;
         Button button4;
+
+        private VoteOnClickHandler mVoteClickHandler;
+        private String mKey;
 
         public FriendlyMessageHolder(View itemView) {
             super(itemView);
@@ -120,10 +80,74 @@ public class MessageAdapter extends FirebaseRecyclerAdapter<FriendlyMessage, Mes
             button2 = (Button) itemView.findViewById(R.id.button2);
             button3 = (Button) itemView.findViewById(R.id.button3);
             button4 = (Button) itemView.findViewById(R.id.button4);
+
+            button1.setOnClickListener(this);
+            button2.setOnClickListener(this);
+            button3.setOnClickListener(this);
+            button4.setOnClickListener(this);
+        }
+
+        public void bindPollMessage(FriendlyMessage chatMessage, VoteOnClickHandler handler, String key) {
+            int answerNumber = 1;
+            String question = chatMessage.getText();
+            // set and display the buttons as necessary
+            for (PollAnswer answer : chatMessage.getPoll()) {
+                String answerNumberString = String.valueOf(answerNumber);
+                question += "\n" + answerNumberString + ") " + answer.getText();
+
+                Button b = null;
+                switch (answerNumber) {
+                    case 1:
+                        b = button1;
+                        break;
+                    case 2:
+                        b = button2;
+                        break;
+                    case 3:
+                        b = button3;
+                        break;
+                    case 4:
+                        b = button4;
+                        break;
+                    default:
+                        b = button1;
+                }
+
+                int voteCount = 0;
+                if (answer.getVotes() != null) voteCount = answer.getVotes().size();
+
+                String buttonText = "Vote " + answerNumberString + " (" + voteCount + ")";
+
+                b.setText(buttonText);
+                b.setVisibility(View.VISIBLE);
+
+                answerNumber++;
+            }
+
+            messageTextView.setText(question);
+            mVoteClickHandler = handler;
+            this.mKey = key;
         }
 
         @Override
         public void onClick(View v) {
+
+            if (mVoteClickHandler != null) {
+                switch (v.getId()) {
+                    case R.id.button1:
+                        mVoteClickHandler.onClick("1", mKey);
+                        break;
+                    case R.id.button2:
+                        mVoteClickHandler.onClick("2", mKey);
+                        break;
+                    case R.id.button3:
+                        mVoteClickHandler.onClick("3", mKey);
+                        break;
+                    case R.id.button4:
+                        mVoteClickHandler.onClick("4", mKey);
+                        break;
+                }
+            }
 
         }
     }
