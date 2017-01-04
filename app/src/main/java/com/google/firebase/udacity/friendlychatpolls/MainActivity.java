@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
 
     private static final String TAG = "MainActivity";
 
-    public static final String ANONYMOUS = "anonymous";
+    //public static final String ANONYMOUS = "anonymous";
     public static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     public static final String FRIENDLY_MSG_LENGTH_KEY = "friendly_msg_length";
 
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
     private EditText mMessageEditText;
     private Button mSendButton;
 
-    private String mUsername;
+    private FirebaseUser mUser;
 
     // Firebase instance variables
     private FirebaseDatabase mFirebaseDatabase;
@@ -91,8 +91,6 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mUsername = ANONYMOUS;
 
         // Initialize Firebase components
         mFirebaseDatabase = FirebaseDatabase.getInstance();
@@ -162,9 +160,9 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
                 String message = mMessageEditText.getText().toString();
                 FriendlyMessage friendlyMessage = null;
                 if (MessageUtilities.isPoll(message)) {
-                    friendlyMessage = MessageUtilities.parsePoll(message, mUsername);
+                    friendlyMessage = MessageUtilities.parsePoll(message, mUser.getDisplayName());
                 } else {
-                    friendlyMessage = new FriendlyMessage(mMessageEditText.getText().toString(), null, mUsername);
+                    friendlyMessage = new FriendlyMessage(mMessageEditText.getText().toString(), null, mUser.getDisplayName());
                 }
 
                 mMessagesDatabaseReference.push().setValue(friendlyMessage);
@@ -180,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     // User is signed in
-                    onSignedInInitialize(user.getDisplayName());
+                    onSignedInInitialize(user);
                 } else {
                     // User is signed out
                     onSignedOutCleanup();
@@ -240,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
                             Uri downloadUrl = taskSnapshot.getDownloadUrl();
 
                             // Set the download URL to the message box, so that the user can send it to the database
-                            FriendlyMessage friendlyMessage = new FriendlyMessage(null, mUsername, downloadUrl.toString());
+                            FriendlyMessage friendlyMessage = new FriendlyMessage(null, mUser.getDisplayName(), downloadUrl.toString());
                             mMessagesDatabaseReference.push().setValue(friendlyMessage);
                         }
                     });
@@ -279,12 +277,12 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
         }
     }
 
-    private void onSignedInInitialize(String username) {
-        mUsername = username;
+    private void onSignedInInitialize(FirebaseUser user) {
+        mUser = user;
     }
 
     private void onSignedOutCleanup() {
-        mUsername = ANONYMOUS;
+        mUser = null;
     }
 
 
@@ -337,6 +335,20 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
     public void onClick(String voteNumber, String messageId) {
         // TODO make a poll a constant
         DatabaseReference voteRef = mMessagesDatabaseReference.child(messageId).child("poll").child(voteNumber).child("votes");
+
+        voteRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                dataSnapshot.getValue();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
         Log.e("MainActivity", "voted " + voteRef.toString());
 
 
