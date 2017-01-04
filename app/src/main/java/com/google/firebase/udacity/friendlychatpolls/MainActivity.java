@@ -142,12 +142,12 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
                 String message = mMessageEditText.getText().toString();
                 FriendlyMessage friendlyMessage = null;
                 if (MessageUtilities.isPoll(message)) {
-                    friendlyMessage = MessageUtilities.parsePoll(message, mUser.getDisplayName());
+                    friendlyMessage = MessageUtilities.parsePoll(message, mUser.getDisplayName(), MainActivity.this);
                 } else {
                     friendlyMessage = new FriendlyMessage(mMessageEditText.getText().toString(), null, mUser.getDisplayName());
                 }
 
-                mMessagesDatabaseReference.push().setValue(friendlyMessage);
+                if (friendlyMessage != null) mMessagesDatabaseReference.push().setValue(friendlyMessage);
 
                 // Clear input box
                 mMessageEditText.setText("");
@@ -276,7 +276,6 @@ public class MainActivity extends AppCompatActivity implements MessageAdapter.Vo
 
     @Override
     public void onClick(String voteNumber, String messageId) {
-        // TODO make a poll a constant
         final DatabaseReference voteRef = mMessagesDatabaseReference.child(messageId).child("poll").child(voteNumber).child("votes").child(mUser.getUid());
 
         voteRef.addListenerForSingleValueEvent(new ValueEventListener() {
